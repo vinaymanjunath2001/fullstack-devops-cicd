@@ -1,60 +1,72 @@
 const express = require("express");
 const mysql = require("mysql2");
-var cors = require("cors");
-const bodyParser = require("body-parser");
+const cors = require("cors");
 
-// Create the Express app
 const app = express();
-app.use(cors());
-app.use(bodyParser.json());
 
-// Create a connection to the MySQL database
+// Middlewares
+app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// MySQL config
 const mysqlConfig = {
-  host: process.env.DB_HOST || "db",
+  host: process.env.DB_HOST || "mysql-db",
   port: process.env.DB_PORT || "3306",
   user: process.env.DB_USER || "root",
   password: process.env.DB_PASSWORD || "pass123",
-  database: process.env.DB_NAME || "appdb",
+  database: process.env.DB_NAME || "testdb",
 };
 
 let con = null;
+
+// Initialize DB connection
 const databaseInit = () => {
   con = mysql.createConnection(mysqlConfig);
   con.connect((err) => {
     if (err) {
-      console.error("Error connecting to the database: ", err);
+      console.error("Error connecting to DB:", err);
       return;
     }
     console.log("Connected to the database");
   });
 };
 
+// Create database if not exists
 const createDatabase = () => {
-  con.query("CREATE DATABASE IF NOT EXISTS appdb", (err, results) => {
-    if (err) {
-      console.error(err);
-      return;
-    }
-    console.log("Database created successfully");
-  });
-};
-
-const createTable = () => {
   con.query(
-    "CREATE TABLE IF NOT EXISTS apptb (id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(255))",
-    (err, results) => {
+    `CREATE DATABASE IF NOT EXISTS ${mysqlConfig.database}`,
+    (err) => {
       if (err) {
-        console.error(err);
-        return;
+        console.error("Error creating database:", err);
+      } else {
+        console.log("Database ensured");
       }
-      console.log("Table created successfully");
     }
   );
 };
 
-// GET request
-app.get("/user", (req, res) => {
-  databaseInit();
+// Create table if not exists
+const createTable = () => {
+  con.query(
+    `CREATE TABLE IF NOT EXISTS apptb (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      name VARCHAR(255)
+    )`,
+    (err) => {
+      if (err) {
+        console.error("Error creating table:", err);
+      } else {
+        console.log("Table apptb ensured");
+      }
+    }
+  );
+};
+
+// ---------------- ROUTES ----------------
+
+// GET users
+app.get("/users", (req, res) => {
   con.query("SELECT * FROM apptb", (err, results) => {
     if (err) {
       console.error(err);
@@ -65,7 +77,7 @@ app.get("/user", (req, res) => {
   });
 });
 
-// POST request
+// POST user
 app.post("/user", (req, res) => {
   con.query(
     "INSERT INTO apptb (name) VALUES (?)",
@@ -73,7 +85,7 @@ app.post("/user", (req, res) => {
     (err, results) => {
       if (err) {
         console.error(err);
-        res.status(500).send("Error retrieving data from database");
+        res.status(500).send("Error inserting data");
       } else {
         res.json(results);
       }
@@ -81,19 +93,17 @@ app.post("/user", (req, res) => {
   );
 });
 
-app.post("/dbinit", (req, res) => {
-  databaseInit();
-  createDatabase();
-  res.json("Database created successfully");
-});
+// ------------ STARTUP SEQUENCE ------------
 
-app.post("/tbinit", (req, res) => {
-  databaseInit();
-  createTable();
-  res.json("Table created successfully");
-});
+// 1. Connect DB
+databaseInit();
 
-// Start the server
-app.listen(3000, () => {
+// 2. Ensure DB & table
+createDatabase();
+createTable();
+
+// 3. Start server
+app.listen(3000, "0.0.0.0", () => {
   console.log("Server running on port 3000");
 });
+

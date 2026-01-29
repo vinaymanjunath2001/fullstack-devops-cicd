@@ -2,7 +2,7 @@ import "./App.css";
 import axios from "axios";
 import React, { useState, useEffect } from "react";
 
-const URL = "http://localhost:3000";
+const URL = "http://13.202.80.210:5000";
 function App() {
   const [data, setData] = useState([]);
   const [inputValue, setInputValue] = useState("");
@@ -13,7 +13,7 @@ function App() {
 
   const fetchData = async () => {
     try {
-      const response = await axios.get(URL + "/user");
+      const response = await axios.get(URL + "/users");
       console.log(response.data);
       setData(response.data);
     } catch (error) {
