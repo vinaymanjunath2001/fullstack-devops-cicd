@@ -15,6 +15,7 @@ pipeline {
             steps {
                 git branch: 'main',
                     url: 'https://github.com/vinaymanjunath2001/fullstack-devops-cicd.git'
+                    credentialsId: 'github-creds'
             }
         }
 
