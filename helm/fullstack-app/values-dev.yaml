@@ -1,0 +1,16 @@
+global:
+  environment: dev
+
+frontend:
+  replicaCount: 1
+
+backend:
+  replicaCount: 1
+
+mysql:
+  persistence:
+    size: 2Gi
+
+ingress:
+  hosts:
+    - host: dev.fullstack.local

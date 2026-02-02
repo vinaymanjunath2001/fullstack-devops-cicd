@@ -1,0 +1,103 @@
+pipeline {
+    agent any
+
+    environment {
+        DOCKERHUB_CREDENTIALS = 'dockerhub-creds'
+        DOCKERHUB_USERNAME    = 'vinaymanjunath30'
+        FRONTEND_IMAGE        = 'frontend-app'
+        BACKEND_IMAGE         = 'backend-app'
+        SONARQUBE_SERVER      = 'sonarqube'
+    }
+
+    stages {
+
+        stage('Checkout Code') {
+            steps {
+                git branch: 'main',
+                    url: 'https://github.com/vinaymanjunath2001/fullstack-devops-cicd.git'
+            }
+        }
+
+        stage('Build') {
+            steps {
+                sh 'chmod +x jenkins/scripts/build.sh'
+                sh 'jenkins/scripts/build.sh'
+            }
+        }
+
+        stage('Test') {
+            steps {
+                sh 'chmod +x jenkins/scripts/test.sh'
+                sh 'jenkins/scripts/test.sh'
+            }
+        }
+
+        stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv('sonarqube') {
+                    sh '''
+                    sonar-scanner \
+                      -Dsonar.projectKey=fullstack-devops \
+                      -Dsonar.sources=.
+                    '''
+                }
+            }
+        }
+
+        stage('Docker Image Build') {
+            steps {
+                sh '''
+                docker build -t $DOCKERHUB_USERNAME/$FRONTEND_IMAGE:latest frontend
+                docker build -t $DOCKERHUB_USERNAME/$BACKEND_IMAGE:latest backend
+                '''
+            }
+        }
+
+        stage('Trivy Image Scan') {
+            steps {
+                sh '''
+                trivy image --severity HIGH,CRITICAL $DOCKERHUB_USERNAME/$FRONTEND_IMAGE:latest
+                trivy image --severity HIGH,CRITICAL $DOCKERHUB_USERNAME/$BACKEND_IMAGE:latest
+                '''
+            }
+        }
+
+        stage('Push to DockerHub') {
+            steps {
+                withCredentials([usernamePassword(
+                    credentialsId: DOCKERHUB_CREDENTIALS,
+                    usernameVariable: 'DOCKER_USER',
+                    passwordVariable: 'DOCKER_PASS'
+                )]) {
+                    sh 'chmod +x jenkins/scripts/docker-push.sh'
+                    sh 'jenkins/scripts/docker-push.sh'
+                }
+            }
+        }
+        stage('Update Helm values') {
+             steps {
+                 withCredentials([usernamePassword(
+                     credentialsId: 'github-creds',
+                     usernameVariable: 'GIT_USERNAME',
+                     passwordVariable: 'GIT_TOKEN'
+                )]) {
+                    sh '''
+                    git remote set-url origin https://${GIT_USERNAME}:${GIT_TOKEN}@github.com/vinaymanjunath2001/fullstack-devops-cicd.git
+                    chmod +x jenkins/scripts/update-helm-values.sh
+                    jenkins/scripts/update-helm-values.sh
+                    '''
+                }
+            }
+        }
+
+    }
+
+    post {
+        success {
+            echo 'CI Pipeline completed successfully'
+        }
+        failure {
+            echo 'CI Pipeline failed'
+        }
+    }
+}

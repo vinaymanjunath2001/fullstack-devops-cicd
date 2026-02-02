@@ -1,0 +1,33 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: fullstack-project
+  namespace: argocd
+spec:
+  description: Project for Fullstack Application GitOps Deployment
+
+  # Allowed Git repositories
+  sourceRepos:
+    - https://github.com/vinaymanjunath2001/fullstack-devops-cicd.git
+
+  # Allowed deployment destinations
+  destinations:
+    - namespace: fullstack
+      server: https://kubernetes.default.svc
+
+  # Allowed Kubernetes resources
+  clusterResourceWhitelist:
+    - group: ""
+      kind: Namespace
+
+  namespaceResourceWhitelist:
+    - group: ""
+      kind: Service
+    - group: ""
+      kind: ConfigMap
+    - group: ""
+      kind: PersistentVolumeClaim
+    - group: "apps"
+      kind: Deployment
+    - group: "networking.k8s.io"
+      kind: Ingress

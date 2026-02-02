@@ -1,0 +1,100 @@
+# Global values
+global:
+  namespace: fullstack
+  environment: dev
+
+# Frontend configuration
+frontend:
+  name: frontend
+  replicaCount: 2
+
+  image:
+    repository: dockerhub_username/frontend-app
+    tag: v1.0.0
+    pullPolicy: IfNotPresent
+
+  service:
+    type: ClusterIP
+    port: 80
+
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+    limits:
+      cpu: "250m"
+      memory: "256Mi"
+
+# Backend configuration
+backend:
+  name: backend
+  replicaCount: 2
+
+  image:
+    repository: dockerhub_username/backend-app
+    tag: v1.0.0
+    pullPolicy: IfNotPresent
+
+  service:
+    type: ClusterIP
+    port: 3000
+
+  env:
+    DB_HOST: mysql
+    DB_PORT: "3306"
+    DB_NAME: appdb
+    DB_USER: appuser
+    DB_PASSWORD: apppassword
+
+  resources:
+    requests:
+      cpu: "150m"
+      memory: "256Mi"
+    limits:
+      cpu: "300m"
+      memory: "512Mi"
+
+# MySQL configuration
+mysql:
+  name: mysql
+  replicaCount: 1
+
+  image:
+    repository: mysql
+    tag: "8.0"
+    pullPolicy: IfNotPresent
+
+  service:
+    port: 3306
+
+  auth:
+    rootPassword: rootpassword
+    database: appdb
+    username: appuser
+    password: apppassword
+
+  persistence:
+    enabled: true
+    size: 5Gi
+
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+    limits:
+      cpu: "300m"
+      memory: "512Mi"
+
+# Ingress configuration
+ingress:
+  enabled: true
+  className: nginx
+
+  hosts:
+    - host: fullstack.local
+      paths:
+        - path: /
+          pathType: Prefix
+          service:
+            name: frontend
+            port: 80

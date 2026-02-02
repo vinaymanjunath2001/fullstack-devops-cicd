@@ -1,0 +1,30 @@
+global:
+  environment: prod
+
+frontend:
+  replicaCount: 3
+  resources:
+    requests:
+      cpu: "250m"
+      memory: "256Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+
+backend:
+  replicaCount: 3
+  resources:
+    requests:
+      cpu: "300m"
+      memory: "512Mi"
+    limits:
+      cpu: "600m"
+      memory: "1Gi"
+
+mysql:
+  persistence:
+    size: 20Gi
+
+ingress:
+  hosts:
+    - host: fullstack.example.com
