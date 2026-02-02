@@ -13,27 +13,30 @@ pipeline {
 
         stage('Checkout Code') {
             steps {
-                git branch: 'main',
-                    url: 'https://github.com/vinaymanjunath2001/fullstack-devops-cicd.git'
-                    credentialsId: 'github-creds'
+                checkout scm
             }
         }
 
         stage('Build') {
             agent {
-               docker {
-                 image 'node:18'
-                 args '-u root'
+                docker {
+                    image 'node:18'
+                    args '-u root'
                 }
             }
             steps {
-               sh 'chmod +x jenkins/scripts/build.sh'
-               sh 'jenkins/scripts/build.sh'
-           }
+                sh 'chmod +x jenkins/scripts/build.sh'
+                sh 'jenkins/scripts/build.sh'
+            }
         }
-
-
+        
         stage('Test') {
+            agent {
+                docker {
+                    image 'node:18'
+                    args '-u root'
+                }
+            }
             steps {
                 sh 'chmod +x jenkins/scripts/test.sh'
                 sh 'jenkins/scripts/test.sh'
@@ -55,8 +58,8 @@ pipeline {
         stage('Docker Image Build') {
             steps {
                 sh '''
-                docker build -t $DOCKERHUB_USERNAME/$FRONTEND_IMAGE:latest frontend
-                docker build -t $DOCKERHUB_USERNAME/$BACKEND_IMAGE:latest backend
+                docker build -t ${DOCKERHUB_USERNAME}/${FRONTEND_IMAGE}:latest frontend
+                docker build -t ${DOCKERHUB_USERNAME}/${BACKEND_IMAGE}:latest backend
                 '''
             }
         }
@@ -64,8 +67,8 @@ pipeline {
         stage('Trivy Image Scan') {
             steps {
                 sh '''
-                trivy image --severity HIGH,CRITICAL $DOCKERHUB_USERNAME/$FRONTEND_IMAGE:latest
-                trivy image --severity HIGH,CRITICAL $DOCKERHUB_USERNAME/$BACKEND_IMAGE:latest
+                trivy image --severity HIGH,CRITICAL ${DOCKERHUB_USERNAME}/${FRONTEND_IMAGE}:latest
+                trivy image --severity HIGH,CRITICAL ${DOCKERHUB_USERNAME}/${BACKEND_IMAGE}:latest
                 '''
             }
         }
@@ -82,12 +85,13 @@ pipeline {
                 }
             }
         }
+
         stage('Update Helm values') {
-             steps {
-                 withCredentials([usernamePassword(
-                     credentialsId: 'github-creds',
-                     usernameVariable: 'GIT_USERNAME',
-                     passwordVariable: 'GIT_TOKEN'
+            steps {
+                withCredentials([usernamePassword(
+                    credentialsId: 'github-creds',
+                    usernameVariable: 'GIT_USERNAME',
+                    passwordVariable: 'GIT_TOKEN'
                 )]) {
                     sh '''
                     git remote set-url origin https://${GIT_USERNAME}:${GIT_TOKEN}@github.com/vinaymanjunath2001/fullstack-devops-cicd.git
