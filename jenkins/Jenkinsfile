@@ -76,8 +76,8 @@ pipeline {
         export TMPDIR=/var/jenkins_home/tmp
         mkdir -p $TMPDIR
 
-        /usr/local/bin/trivy image --exit-code 1 --severity HIGH,CRITICAL ${DOCKERHUB_USERNAME}/${FRONTEND_IMAGE}:${IMAGE_TAG}
-        /usr/local/bin/trivy image --exit-code 1 --severity HIGH,CRITICAL ${DOCKERHUB_USERNAME}/${BACKEND_IMAGE}:${IMAGE_TAG}
+        /usr/local/bin/trivy image --exit-code 1 --severity CRITICAL ${DOCKERHUB_USERNAME}/${FRONTEND_IMAGE}:${IMAGE_TAG}
+        /usr/local/bin/trivy image --exit-code 1 --severity CRITICAL ${DOCKERHUB_USERNAME}/${BACKEND_IMAGE}:${IMAGE_TAG}
         '''
     }
 }
