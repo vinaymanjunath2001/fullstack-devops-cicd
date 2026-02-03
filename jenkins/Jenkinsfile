@@ -97,20 +97,24 @@ pipeline {
         }
 
         stage('Update Helm values') {
-            steps {
-                withCredentials([usernamePassword(
-                    credentialsId: 'github-creds',
-                    usernameVariable: 'GIT_USERNAME',
-                    passwordVariable: 'GIT_TOKEN'
-                )]) {
-                    sh '''
-                    git remote set-url origin https://${GIT_USERNAME}:${GIT_TOKEN}@github.com/vinaymanjunath2001/fullstack-devops-cicd.git
-                    chmod +x jenkins/scripts/update-helm-values.sh
-                    jenkins/scripts/update-helm-values.sh
-                    '''
-                }
+    steps {
+        withCredentials([usernamePassword(
+            credentialsId: 'github-creds',
+            usernameVariable: 'GIT_USERNAME',
+            passwordVariable: 'GIT_TOKEN'
+        )]) {
+            withEnv([
+                'GIT_EMAIL=vinaymanjunath2001@gmail.com'
+            ]) {
+                sh '''
+                git remote set-url origin https://${GIT_USERNAME}:${GIT_TOKEN}@github.com/vinaymanjunath2001/fullstack-devops-cicd.git
+                chmod +x jenkins/scripts/update-helm-values.sh
+                jenkins/scripts/update-helm-values.sh
+                '''
             }
         }
+    }
+}
     }
 
     post {
