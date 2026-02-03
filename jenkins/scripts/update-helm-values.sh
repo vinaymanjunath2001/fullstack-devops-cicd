@@ -18,6 +18,10 @@ echo "Using image tag: $IMAGE_TAG"
 git config user.name "$GIT_USERNAME"
 git config user.email "$GIT_EMAIL"
 
+# FIX: ensure we are on main branch
+git checkout main
+git pull origin main
+
 # Update frontend image tag
 sed -i "s|tag: .*|tag: ${IMAGE_TAG}|g" $VALUES_FILE
 
