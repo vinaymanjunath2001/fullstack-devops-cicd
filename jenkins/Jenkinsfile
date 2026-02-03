@@ -71,19 +71,17 @@ pipeline {
         }
 
         stage('Trivy Image Scan') {
-            agent {
-                docker {
-                    image 'aquasec/trivy:latest'
-                    args '-v /var/run/docker.sock:/var/run/docker.sock'
-                }
-            }
-            steps {
-                sh '''
-                trivy image --exit-code 1 --severity HIGH,CRITICAL ${DOCKERHUB_USERNAME}/${FRONTEND_IMAGE}:${IMAGE_TAG}
-                trivy image --exit-code 1 --severity HIGH,CRITICAL ${DOCKERHUB_USERNAME}/${BACKEND_IMAGE}:${IMAGE_TAG}
-                '''
-            }
-        }
+    steps {
+        sh '''
+        export TMPDIR=/var/jenkins_home/tmp
+        mkdir -p $TMPDIR
+
+        /usr/local/bin/trivy image --exit-code 1 --severity HIGH,CRITICAL ${DOCKERHUB_USERNAME}/${FRONTEND_IMAGE}:${IMAGE_TAG}
+        /usr/local/bin/trivy image --exit-code 1 --severity HIGH,CRITICAL ${DOCKERHUB_USERNAME}/${BACKEND_IMAGE}:${IMAGE_TAG}
+        '''
+    }
+}
+
 
         stage('Push to DockerHub') {
             steps {
