@@ -11,6 +11,13 @@ pipeline {
 
     stages {
 
+        stage('Checkout') {
+            steps {
+                git branch: 'main',
+                    url: 'https://github.com/vinaymanjunath2001/fullstack-devops-cicd.git'
+            }
+        }
+
         stage('Build') {
             steps {
                 sh 'chmod +x jenkins/scripts/build.sh'
@@ -26,19 +33,21 @@ pipeline {
         }
 
         stage('SonarQube Analysis') {
-    steps {
-        script {
-            def scannerHome = tool 'sonar-scanner'
-            withSonarQubeEnv('sonarqube') {
-                sh """
-                ${scannerHome}/bin/sonar-scanner \
-                  -Dsonar.projectKey=fullstack-devops \
-                  -Dsonar.sources=.
-                """
+            steps {
+                script {
+                    def scannerHome = tool 'sonar-scanner'
+                    withSonarQubeEnv('sonarqube') {
+                        sh """
+                        ${scannerHome}/bin/sonar-scanner \
+                          -Dsonar.projectKey=fullstack-devops \
+                          -Dsonar.projectName=Fullstack-DevOps-CI \
+                          -Dsonar.sources=frontend,backend \
+                          -Dsonar.exclusions=**/node_modules/**,**/*.spec.js
+                        """
+                    }
+                }
             }
         }
-    }
-}
 
         stage('Docker Image Build') {
             steps {

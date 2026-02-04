@@ -26,15 +26,16 @@ curl -fsSL https://get.docker.com | sh
 systemctl enable docker
 systemctl start docker
 usermod -aG docker ubuntu
+usermod -aG docker jenkins || true
 
 #################################
-# Install Java 21 (Required for Jenkins & SonarQube)
+# Install Java 21 (FOR JENKINS)
 #################################
 apt install -y openjdk-21-jre
 java -version
 
 #################################
-# Install Jenkins (LATEST METHOD)
+# Install Jenkins
 #################################
 mkdir -p /etc/apt/keyrings
 
@@ -52,7 +53,12 @@ systemctl enable jenkins
 systemctl start jenkins
 
 #################################
-# Kernel tuning for SonarQube (PERSISTENT)
+# Install Java 17 (FOR SONARQUBE ONLY)
+#################################
+apt install -y openjdk-17-jdk
+
+#################################
+# Kernel tuning for SonarQube
 #################################
 sysctl -w vm.max_map_count=524288
 sysctl -w fs.file-max=131072
@@ -61,7 +67,7 @@ grep -q "vm.max_map_count" /etc/sysctl.conf || echo "vm.max_map_count=524288" >>
 grep -q "fs.file-max" /etc/sysctl.conf || echo "fs.file-max=131072" >> /etc/sysctl.conf
 
 #################################
-# Install SonarQube (HOST BASED)
+# Install SonarQube
 #################################
 useradd sonar || true
 
@@ -77,6 +83,12 @@ chown -R sonar:sonar /opt/sonarqube
 chmod +x /opt/sonarqube/bin/linux-x86-64/sonar.sh
 
 #################################
+# Configure SonarQube to use Java 17
+#################################
+echo "JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64" >> /opt/sonarqube/conf/sonar.sh
+echo "PATH=\$JAVA_HOME/bin:\$PATH" >> /opt/sonarqube/conf/sonar.sh
+
+#################################
 # SonarQube systemd service
 #################################
 cat <<EOF >/etc/systemd/system/sonarqube.service
@@ -88,6 +100,7 @@ After=network.target
 Type=forking
 User=sonar
 Group=sonar
+Environment=JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
 ExecStart=/opt/sonarqube/bin/linux-x86-64/sonar.sh start
 ExecStop=/opt/sonarqube/bin/linux-x86-64/sonar.sh stop
 Restart=always
@@ -104,7 +117,7 @@ systemctl enable sonarqube
 systemctl start sonarqube
 
 #################################
-# Install Trivy (ON HOST)
+# Install Trivy
 #################################
 curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh \
   | sh -s -- -b /usr/local/bin
@@ -112,6 +125,6 @@ curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/inst
 #################################
 # Info
 #################################
-echo "Jenkins running on port 8080"
-echo "SonarQube running on port 9000"
+echo "Jenkins running on port 8080 (Java 21)"
+echo "SonarQube running on port 9000 (Java 17)"
 echo "Docker & Trivy installed"
