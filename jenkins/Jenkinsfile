@@ -26,16 +26,19 @@ pipeline {
         }
 
         stage('SonarQube Analysis') {
-            steps {
-                withSonarQubeEnv('sonarqube') {
-                    sh '''
-                    sonar-scanner \
-                      -Dsonar.projectKey=fullstack-devops \
-                      -Dsonar.sources=.
-                    '''
-                }
+    steps {
+        script {
+            def scannerHome = tool 'sonar-scanner'
+            withSonarQubeEnv('sonarqube') {
+                sh """
+                ${scannerHome}/bin/sonar-scanner \
+                  -Dsonar.projectKey=fullstack-devops \
+                  -Dsonar.sources=.
+                """
             }
         }
+    }
+}
 
         stage('Docker Image Build') {
             steps {
