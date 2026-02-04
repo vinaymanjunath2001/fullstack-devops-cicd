@@ -22,13 +22,14 @@ npm test -- --watch=false --passWithNoTests
 cd ..
 
 echo "Running BACKEND tests"
+echo "Running BACKEND tests"
+
 cd backend
 
-# Check if test script exists
-if npm run | grep -q "test"; then
-  npm test
+if grep -q 'no test specified' package.json; then
+  echo "No backend tests implemented, skipping"
 else
-  echo "No backend tests defined, skipping"
+  npm test
 fi
 
 cd ..
