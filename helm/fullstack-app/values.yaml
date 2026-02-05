@@ -68,10 +68,10 @@ mysql:
     port: 3306
 
   auth:
-    rootPassword: rootpassword
-    database: appdb
-    username: appuser
-    password: apppassword
+    rootPassword: pass123
+    database: testdb
+    username: root
+    password: pass123
 
   persistence:
     enabled: true
