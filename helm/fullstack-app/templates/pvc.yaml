@@ -4,11 +4,12 @@ metadata:
   name: mysql-pvc
   namespace: {{ .Values.global.namespace }}
   labels:
-    app: {{ .Values.mysql.name }}
+    app: mysql-db
     environment: {{ .Values.global.environment }}
 spec:
   accessModes:
     - ReadWriteOnce
+  storageClassName: gp2
   resources:
     requests:
       storage: {{ .Values.mysql.persistence.size }}
