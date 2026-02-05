@@ -96,5 +96,10 @@ ingress:
         - path: /
           pathType: Prefix
           service:
-            name: frontend
+            name: frontend-service
             port: 80
+        - path: /api
+          pathType: Prefix
+          service:
+            name: backend-service
+            port: 3000
