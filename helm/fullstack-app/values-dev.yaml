@@ -1,16 +1,17 @@
-global:
-  environment: dev
-
-frontend:
-  replicaCount: 1
-
-backend:
-  replicaCount: 1
-
-mysql:
-  persistence:
-    size: 2Gi
-
 ingress:
+  enabled: true
+  className: nginx
+
   hosts:
     - host: dev.fullstack.local
+      paths:
+        - path: /
+          pathType: Prefix
+          service:
+            name: frontend
+            port: 80
+        - path: /api
+          pathType: Prefix
+          service:
+            name: backend
+            port: 3000
