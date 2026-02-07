@@ -10,11 +10,28 @@ metadata:
 spec:
   ingressClassName: {{ .Values.ingress.className }}
   rules:
+
+  # 1️⃣ Existing host-based rules (UNCHANGED)
 {{- range .Values.ingress.hosts }}
     - host: {{ .host }}
       http:
         paths:
 {{- range .paths }}
+          - path: {{ .path }}
+            pathType: {{ .pathType }}
+            backend:
+              service:
+                name: {{ .service.name }}
+                port:
+                  number: {{ .service.port }}
+{{- end }}
+{{- end }}
+
+  # 2️⃣ NEW: Catch-all rule (NO host)
+{{- if .Values.ingress.enableCatchAll }}
+    - http:
+        paths:
+{{- range .Values.ingress.catchAll.paths }}
           - path: {{ .path }}
             pathType: {{ .pathType }}
             backend:
