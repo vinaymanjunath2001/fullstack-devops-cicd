@@ -48,7 +48,7 @@ https://pkg.jenkins.io/debian binary/" \
 
 apt update -y
 apt install -y jenkins
-sudo usermod -aG docker jenkins
+usermod -aG docker jenkins
 systemctl enable jenkins
 systemctl start jenkins
 
@@ -85,8 +85,8 @@ chmod +x /opt/sonarqube/bin/linux-x86-64/sonar.sh
 #################################
 # Configure SonarQube to use Java 17
 #################################
-echo "JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64" >> /opt/sonarqube/conf/sonar.sh
-echo "PATH=\$JAVA_HOME/bin:\$PATH" >> /opt/sonarqube/conf/sonar.sh
+sed -i 's|#JAVA_HOME=.*|JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64|' \
+/opt/sonarqube/bin/linux-x86-64/sonar.sh
 
 #################################
 # SonarQube systemd service
@@ -100,7 +100,7 @@ After=network.target
 Type=forking
 User=sonar
 Group=sonar
-Environment=JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+Environment=SONAR_JAVA_PATH=/usr/lib/jvm/java-17-openjdk-amd64/bin/java
 ExecStart=/opt/sonarqube/bin/linux-x86-64/sonar.sh start
 ExecStop=/opt/sonarqube/bin/linux-x86-64/sonar.sh stop
 Restart=always
@@ -130,6 +130,4 @@ echo "SonarQube running on port 9000 (Java 17)"
 echo "Docker & Trivy installed"
 
 curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
-sudo apt install -y nodejs
-npm install
-npm run build
+apt install -y nodejs
